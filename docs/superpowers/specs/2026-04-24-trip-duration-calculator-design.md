@@ -32,7 +32,7 @@ Four flight datetime fields, matching what appears on a boarding pass:
 | Return departure date + time | Destination local time | Yes — departure day score |
 | Return arrival date + time | Home local time | No |
 
-All four fields are always shown. Label the two scoring fields with a subtle note ("destination local time").
+All four fields are always shown. Label the two scoring fields (outbound arrival, return departure) with a small badge "⏱ affects result".
 
 ---
 
@@ -121,7 +121,8 @@ Days of week according to selected week structure:
 - Day type badge: Arrival / Full day / Weekend / Departure
 - Usable value: 0, 0.25, 0.5, 0.75, or 1.00
 - Hebrew date (small, subtle) — if Hebrew calendar enabled
-- Holiday label — if applicable and Hebrew calendar enabled
+- Holiday tier pill shown on the cell: green "Day off" / yellow "Half day" / grey "Workday"
+- Holiday name (e.g. "Lag B'Omer", "Shabbat") shown below the tier pill
 
 ### Color coding
 - Arrival day: orange
@@ -240,8 +241,11 @@ interface TripResult {
 ## Styling
 
 - Dark theme, clean card-based layout
-- Mobile-first responsive (single column on mobile, wider on desktop)
+- Mobile-first responsive — single column, touch-friendly, tested on iPhone viewport
+- Gradient hero header with plane emoji and drop-shadow glow
 - Auto-calculate on every input change — no submit button
 - Cards: Flight inputs, Settings, Result, Trip Calendar
-- Result card visually distinct (accent border/background)
-- Calendar: color-coded cells per day type; weekend columns subtly highlighted
+- Result card visually distinct (blue/purple gradient background + accent border)
+- Stat grid uses emoji icons (☀️ 🌙 ✈️ 📅 💼 🏖️) per stat
+- Calendar: color-coded cells per day type; weekend columns subtly highlighted in yellow
+- Holiday tier shown as colored pill badge (green/yellow/grey) on each calendar cell
