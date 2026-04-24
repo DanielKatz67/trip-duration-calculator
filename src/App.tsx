@@ -1,122 +1,81 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.css'
+import type { FlightInputs, ScoringThresholds, WeekStructure } from './types'
+import { DEFAULT_THRESHOLDS } from './types'
+import FlightInputCard from './components/FlightInputCard'
+import SettingsCard from './components/SettingsCard'
+import ResultCard from './components/ResultCard'
+import TripCalendarCard from './components/TripCalendarCard'
+import { calcTripResult } from './utils/calcTripResult'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+const EMPTY_INPUTS: FlightInputs = {
+  outboundDepartureDate: '',
+  outboundDepartureTime: '',
+  outboundArrivalDate: '',
+  outboundArrivalTime: '',
+  returnDepartureDate: '',
+  returnDepartureTime: '',
+  returnArrivalDate: '',
+  returnArrivalTime: '',
 }
 
-export default App
+function validateInputs(inputs: FlightInputs): string | null {
+  const allFilled = Object.values(inputs).every(v => v !== '')
+  if (!allFilled) return null // not an error, just incomplete
+  if (inputs.outboundArrivalDate > inputs.returnDepartureDate) {
+    return 'Return departure must be on or after outbound arrival.'
+  }
+  if (
+    inputs.outboundArrivalDate === inputs.returnDepartureDate &&
+    inputs.outboundArrivalTime > inputs.returnDepartureTime
+  ) {
+    return 'Return departure time must be after outbound arrival time on the same day.'
+  }
+  return null
+}
+
+export default function App() {
+  const [inputs, setInputs] = useState<FlightInputs>(EMPTY_INPUTS)
+  const [weekStructure, setWeekStructure] = useState<WeekStructure>('israel')
+  const [thresholds, setThresholds] = useState<ScoringThresholds>(DEFAULT_THRESHOLDS)
+
+  const validationError = validateInputs(inputs)
+  const isComplete = Object.values(inputs).every(v => v !== '')
+  const result = isComplete && !validationError
+    ? calcTripResult(inputs, thresholds, weekStructure)
+    : null
+
+  return (
+    <div className="app">
+      <div className="hero">
+        <span className="hero-emoji">✈️</span>
+        <h1>Trip Duration Calculator</h1>
+        <p>Understand the real usable days of your trip</p>
+      </div>
+
+      {validationError && (
+        <div className="error-banner">⚠️ {validationError}</div>
+      )}
+
+      <FlightInputCard inputs={inputs} onChange={setInputs} />
+      <SettingsCard
+        weekStructure={weekStructure}
+        onWeekStructureChange={setWeekStructure}
+        thresholds={thresholds}
+        onThresholdsChange={setThresholds}
+      />
+
+      {result && (
+        <>
+          <ResultCard result={result} />
+          <TripCalendarCard
+            inputs={inputs}
+            result={result}
+            weekStructure={weekStructure}
+            thresholds={thresholds}
+          />
+        </>
+      )}
+    </div>
+  )
+}
