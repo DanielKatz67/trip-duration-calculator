@@ -81,7 +81,7 @@ All six thresholds (10:00, 15:00, 12:00, 20:00) and their corresponding scores a
 - **Weekdays / Weekend days**: Count of calendar days that fall on weekdays or weekend days per selected week structure.
 
 ### Edge cases
-- **Same-day trip** (arrival date == departure date): 0 full days, 0 nights. Usable days = arrival score + departure score (capped at 1.0 — can't exceed a full day).
+- **Same-day trip** (arrival date == departure date): 0 full days, 0 nights. Usable days = max(arrival score, departure score) — take the higher of the two, since both scores apply to the same physical day and combining them would overcount.
 - **Overnight outbound flight** (departure date before arrival date): handled correctly — only arrival date matters for scoring.
 - **Validation**: Return departure must be on or after outbound arrival date. Show inline error if not. All four fields must be filled before calculating.
 
