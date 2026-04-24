@@ -109,7 +109,7 @@ Calculations update automatically on every input change. No "Calculate" button.
 ## Trip Calendar View
 
 ### Layout
-A real calendar grid (7-column, week-aligned). Shows only the trip month(s). Non-trip days in the same month are shown faded/greyed. If the trip spans two months, show both months.
+A real calendar grid (7-column, week-aligned). Shows only the trip month(s). Non-trip days in the same month are shown faded/greyed. If the trip spans two months, render two separate month grids stacked vertically, each with its own month/year header.
 
 ### Column headers
 Days of week according to selected week structure:
