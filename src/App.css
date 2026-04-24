@@ -301,3 +301,106 @@ body {
 .vrow-value { font-size: 1.6rem; font-weight: 900; flex-shrink: 0; }
 .vrow.full .vrow-value { color: var(--color-departure); }
 .vrow.half .vrow-value { color: var(--color-weekend); }
+
+/* Calendar */
+.cal-section { margin-bottom: 18px; }
+.cal-month-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  text-align: center;
+}
+.cal-dow {
+  font-size: 0.6rem;
+  padding: 3px 2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.cal-dow.weekend { color: var(--color-weekend); }
+.cal-dow.weekday { color: var(--text-dim); }
+.cal-cell {
+  border-radius: 7px;
+  padding: 4px 2px 5px;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1px;
+}
+.cal-cell.faded { opacity: 0.12; }
+.cal-cell.arrival  { background: rgba(246,173,85,0.17);  border: 1px solid rgba(246,173,85,0.44); }
+.cal-cell.full-day { background: rgba(104,211,145,0.1);  border: 1px solid rgba(104,211,145,0.27); }
+.cal-cell.weekend-day { background: rgba(246,224,94,0.09); border: 1px solid rgba(246,224,94,0.3); }
+.cal-cell.departure  { background: rgba(252,129,129,0.12); border: 1px solid rgba(252,129,129,0.37); }
+.cal-num { font-size: 0.8rem; font-weight: 700; }
+.cal-cell.arrival    .cal-num { color: var(--color-arrival); }
+.cal-cell.weekend-day .cal-num { color: var(--color-weekend); }
+.cal-cell.departure  .cal-num { color: var(--color-departure); }
+.cal-value { font-size: 0.58rem; font-weight: 600; opacity: 0.85; }
+.cal-cell.arrival     .cal-value { color: var(--color-arrival); }
+.cal-cell.full-day    .cal-value { color: var(--color-full); }
+.cal-cell.weekend-day .cal-value { color: var(--color-weekend); }
+.cal-cell.departure   .cal-value { color: var(--color-departure); }
+.cal-heb { font-size: 0.5rem; color: var(--text-dim); }
+.cal-tier {
+  font-size: 0.5rem;
+  border-radius: 3px;
+  padding: 1px 3px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cal-tier.tier-off  { background: rgba(104,211,145,0.25); color: var(--color-full); }
+.cal-tier.tier-half { background: rgba(246,224,94,0.2);   color: var(--color-weekend); }
+.cal-tier.tier-work { background: rgba(160,174,192,0.15); color: var(--text-muted); }
+.cal-holiday {
+  font-size: 0.5rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 52px;
+}
+
+/* TripCalendarCard */
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.arrival-dot  { background: var(--color-arrival); }
+.full-dot     { background: var(--color-full); }
+.weekend-dot  { background: var(--color-weekend); }
+.departure-dot { background: var(--color-departure); }
+.legend-tier {
+  font-size: 0.62rem;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-weight: 700;
+}
+.legend-tier.tier-off  { background: rgba(104,211,145,0.25); color: var(--color-full); }
+.legend-tier.tier-half { background: rgba(246,224,94,0.2);   color: var(--color-weekend); }
+.legend-tier.tier-work { background: rgba(160,174,192,0.15); color: var(--text-muted); }
