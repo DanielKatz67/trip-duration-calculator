@@ -91,3 +91,56 @@ body {
   color: var(--color-departure);
   margin-bottom: 14px;
 }
+
+/* FlightInputCard */
+.flight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.flight-leg {
+  background: #22253a;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.flight-leg.scoring {
+  border-color: var(--border-accent);
+  background: rgba(99, 179, 237, 0.04);
+}
+.leg-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.affects-badge {
+  background: rgba(99, 179, 237, 0.18);
+  color: var(--color-accent);
+  font-size: 0.58rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.field-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 9px;
+  font-size: 0.82rem;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+}
+.field-input:focus {
+  border-color: var(--color-accent);
+}
