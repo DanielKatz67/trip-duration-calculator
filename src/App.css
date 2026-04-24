@@ -144,3 +144,69 @@ body {
 .field-input:focus {
   border-color: var(--color-accent);
 }
+
+/* SettingsCard */
+.week-toggle {
+  display: flex;
+  background: var(--bg-input);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+.toggle-btn {
+  flex: 1;
+  padding: 9px 8px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+.toggle-btn.active {
+  background: linear-gradient(135deg, #4299e1, #9f7aea);
+  color: white;
+}
+.toggle-sub {
+  font-size: 0.7em;
+  font-weight: 400;
+  opacity: 0.8;
+}
+.advanced-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  cursor: pointer;
+  margin-top: 10px;
+  text-align: center;
+  padding: 4px;
+  font-family: inherit;
+}
+.advanced-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.advanced-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.threshold-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.threshold-input {
+  width: 80px !important;
+}
