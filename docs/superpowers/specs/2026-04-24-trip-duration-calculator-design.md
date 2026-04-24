@@ -102,6 +102,17 @@ Secondary stats (6-cell grid):
 |---|---|---|
 | Calendar days | Weekdays | Weekend days |
 
+### Work vacation section (always shown, below stats grid)
+
+Displayed as two breakdown rows with left accent border (Option B design):
+
+- **🏝️ Vacation days needed** = weekday full days − full-day-off holidays falling on weekdays
+  - Formula shown: e.g. "4 weekdays − 1 full holiday (Independence Day)"
+- **🌅 Half-day vacations needed** = count of half-day holidays (Erev Chag, Yom HaZikaron) falling on weekdays
+  - Formula shown: e.g. "1 Erev holiday on weekday (Erev Shavuot)"
+
+Arrival and departure days are excluded from this count — only full days between arrival and departure are considered.
+
 Calculations update automatically on every input change. No "Calculate" button.
 
 ---
@@ -131,10 +142,10 @@ Days of week according to selected week structure:
 - Departure day: red/coral
 - Non-trip days in month: faded, no color
 
-### Hebrew calendar toggle
-A toggle switch labeled "Show Jewish calendar". Off by default. When enabled:
-- Hebrew date shown in each trip day cell
-- Holiday label shown (or "—" if none)
+### Hebrew calendar
+Always enabled — no toggle. Every trip day cell always shows:
+- Hebrew date
+- Holiday tier pill and holiday name (or nothing if no holiday)
 - Uses `@hebcal/core` entirely client-side (no API calls)
 
 ---
@@ -142,12 +153,12 @@ A toggle switch labeled "Show Jewish calendar". Off by default. When enabled:
 ## Hebrew / Israeli Calendar
 
 ### Implementation
-Use `@hebcal/core` (npm package, client-side). No backend needed.
+Use `@hebcal/core` (npm package, client-side). No backend needed. Always active — no toggle.
 
-### Data shown per day (when toggle is on)
+### Data shown per day
 - Hebrew date string (e.g., י״ו ניסן)
 - Holiday name if applicable (e.g., "Pesach day 2", "Chol HaMoed", "Shabbat")
-- Holiday tier label (informational only, does not affect scoring):
+- Holiday tier label (informational only, does not affect usable day scoring):
 
 | Tier | Examples |
 |---|---|
@@ -165,10 +176,10 @@ Israeli holiday schedule used (not diaspora).
 App
 ├── FlightInputCard          — 4 datetime fields
 ├── SettingsCard             — week structure toggle + collapsible advanced thresholds
-├── ResultCard               — usable days headline + 6-stat grid
+├── ResultCard               — usable days headline + 6-stat grid + vacation days section
 └── TripCalendarCard
-    ├── CalendarGrid         — 7-col week-aligned grid
-    └── CalendarCell         — individual day cell with color + Hebrew data
+    ├── CalendarMonth        — 7-col week-aligned grid (always shows Hebrew data)
+    └── CalendarCell         — individual day cell with color + Hebrew date + holiday tier
 ```
 
 ### Utility functions (pure, no side effects)
@@ -180,9 +191,10 @@ App
 | `calcArrivalScore(arrivalTime, thresholds)` | Score for arrival day |
 | `calcDepartureScore(departureTime, thresholds)` | Score for departure day |
 | `calcWeekdayCounts(dates[], weekStructure)` | Count weekdays + weekend days |
-| `buildTripDays(arrivalDate, departureDate, scores, weekStructure)` | Array of TripDay objects for calendar |
+| `buildTripDays(arrivalDate, departureDate, scores, weekStructure)` | Array of TripDay objects for calendar (always includes Hebrew data) |
 | `formatBreakdown(fullDays, travelDayValue)` | "5 full days + 1.25 travel-day value" |
 | `getHebrewCalendarData(date)` | Hebrew date + holiday info for one date |
+| `calcVacationDays(tripDays, weekStructure)` | Returns vacationDaysNeeded, halfVacationDaysNeeded, and holiday name lists |
 
 ---
 
@@ -224,6 +236,10 @@ interface TripResult {
   weekendDays: number;
   arrivalScore: number;
   departureScore: number;
+  vacationDaysNeeded: number;       // weekday full days − full-day-off holidays on weekdays
+  halfVacationDaysNeeded: number;   // half-day holidays on weekdays
+  fullHolidaysOnWeekdays: string[]; // names of full-day-off holidays deducted
+  halfHolidaysOnWeekdays: string[]; // names of half-day holidays counted
 }
 ```
 

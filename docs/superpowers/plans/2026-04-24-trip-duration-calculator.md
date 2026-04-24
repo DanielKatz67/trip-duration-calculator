@@ -25,6 +25,7 @@ src/
     formatBreakdown.ts         — formatBreakdown()
     calcTripResult.ts          — calcTripResult() — orchestrates all utils into TripResult
     hebrewCalendar.ts          — getHebrewCalendarData()
+    calcVacationDays.ts        — calcVacationDays()
   components/
     FlightInputCard.tsx        — 4 datetime fields
     SettingsCard.tsx           — week structure toggle + collapsible advanced thresholds
@@ -184,6 +185,10 @@ export interface TripResult {
   weekendDays: number;
   arrivalScore: number;
   departureScore: number;
+  vacationDaysNeeded: number;
+  halfVacationDaysNeeded: number;
+  fullHolidaysOnWeekdays: string[];
+  halfHolidaysOnWeekdays: string[];
 }
 
 export interface FlightInputs {
@@ -936,6 +941,8 @@ import { calcArrivalScore } from './calcArrivalScore'
 import { calcDepartureScore } from './calcDepartureScore'
 import { calcWeekdayCounts } from './calcWeekdayCounts'
 import { buildTripDays } from './buildTripDays'
+import { getHebrewCalendarData } from './hebrewCalendar'
+import { calcVacationDays } from './calcVacationDays'
 
 export function calcTripResult(
   inputs: FlightInputs,
@@ -961,9 +968,21 @@ export function calcTripResult(
     weekStructure
   )
 
-  const calendarDays = tripDays.length
-  const allDates = tripDays.map(d => d.date)
+  // Always enrich with Hebrew calendar data
+  const enrichedDays = tripDays.map(td => {
+    const hData = getHebrewCalendarData(td.date)
+    return {
+      ...td,
+      hebrewDate: hData.hebrewDate,
+      holidayName: hData.holidayName ?? undefined,
+      holidayTier: hData.holidayTier ?? undefined,
+    }
+  })
+
+  const calendarDays = enrichedDays.length
+  const allDates = enrichedDays.map(d => d.date)
   const { weekdays, weekendDays } = calcWeekdayCounts(allDates, weekStructure)
+  const vacation = calcVacationDays(enrichedDays, weekStructure)
 
   return {
     usableDays: Math.round(usableDays * 100) / 100,
@@ -975,6 +994,7 @@ export function calcTripResult(
     weekendDays,
     arrivalScore,
     departureScore,
+    ...vacation,
   }
 }
 ```
@@ -1148,6 +1168,179 @@ git commit -m "feat: add hebrewCalendar utility using @hebcal/core"
 
 ---
 
+---
+
+## Task 10b: calcVacationDays utility
+
+**Files:**
+- Create: `src/utils/calcVacationDays.ts`
+- Create: `tests/utils/calcVacationDays.test.ts`
+
+- [ ] **Step 1: Write failing tests**
+
+Create `tests/utils/calcVacationDays.test.ts`:
+
+```typescript
+import { describe, it, expect } from 'vitest'
+import { calcVacationDays } from '../../src/utils/calcVacationDays'
+import type { TripDay } from '../../src/types'
+
+function makeDay(date: string, type: TripDay['type'], isWeekend: boolean, holidayTier?: TripDay['holidayTier'], holidayName?: string): TripDay {
+  return {
+    date: new Date(date),
+    type,
+    isWeekend,
+    usableValue: type === 'full' ? 1 : 0.75,
+    holidayTier,
+    holidayName,
+  }
+}
+
+describe('calcVacationDays', () => {
+  it('returns weekday full days count when no holidays', () => {
+    const days: TripDay[] = [
+      makeDay('2026-04-28', 'arrival', false),
+      makeDay('2026-04-29', 'full', false),   // weekday, no holiday
+      makeDay('2026-04-30', 'full', false),   // weekday, no holiday
+      makeDay('2026-05-01', 'full', false),   // weekday, no holiday
+      makeDay('2026-05-02', 'full', true),    // weekend
+      makeDay('2026-05-03', 'full', true),    // weekend
+      makeDay('2026-05-04', 'departure', false),
+    ]
+    const result = calcVacationDays(days)
+    expect(result.vacationDaysNeeded).toBe(3)  // 3 weekday full days
+    expect(result.halfVacationDaysNeeded).toBe(0)
+    expect(result.fullHolidaysOnWeekdays).toEqual([])
+    expect(result.halfHolidaysOnWeekdays).toEqual([])
+  })
+
+  it('deducts full-day-off holidays on weekdays', () => {
+    const days: TripDay[] = [
+      makeDay('2026-04-28', 'arrival', false),
+      makeDay('2026-04-29', 'full', false, 'full-day-off', 'Independence Day'),
+      makeDay('2026-04-30', 'full', false),
+      makeDay('2026-05-04', 'departure', false),
+    ]
+    const result = calcVacationDays(days)
+    expect(result.vacationDaysNeeded).toBe(1)  // 2 weekday full days − 1 full holiday
+    expect(result.fullHolidaysOnWeekdays).toEqual(['Independence Day'])
+  })
+
+  it('does not deduct full-day-off holidays on weekends', () => {
+    const days: TripDay[] = [
+      makeDay('2026-04-28', 'arrival', false),
+      makeDay('2026-04-29', 'full', false),
+      makeDay('2026-05-02', 'full', true, 'full-day-off', 'Shabbat'),  // weekend
+      makeDay('2026-05-04', 'departure', false),
+    ]
+    const result = calcVacationDays(days)
+    expect(result.vacationDaysNeeded).toBe(1)  // only 1 weekday full day
+    expect(result.fullHolidaysOnWeekdays).toEqual([])
+  })
+
+  it('counts half-day holidays on weekdays', () => {
+    const days: TripDay[] = [
+      makeDay('2026-04-28', 'arrival', false),
+      makeDay('2026-04-29', 'full', false, 'half-day', 'Erev Shavuot'),
+      makeDay('2026-04-30', 'full', false),
+      makeDay('2026-05-04', 'departure', false),
+    ]
+    const result = calcVacationDays(days)
+    expect(result.vacationDaysNeeded).toBe(2)  // half-day does NOT deduct full vacation day
+    expect(result.halfVacationDaysNeeded).toBe(1)
+    expect(result.halfHolidaysOnWeekdays).toEqual(['Erev Shavuot'])
+  })
+
+  it('excludes arrival and departure days from calculation', () => {
+    const days: TripDay[] = [
+      makeDay('2026-04-28', 'arrival', false, 'full-day-off', 'Pesach I'),
+      makeDay('2026-04-29', 'full', false),
+      makeDay('2026-05-04', 'departure', false, 'half-day', 'Erev Shavuot'),
+    ]
+    const result = calcVacationDays(days)
+    expect(result.vacationDaysNeeded).toBe(1)  // only 1 full weekday, arrival/departure excluded
+    expect(result.halfVacationDaysNeeded).toBe(0)  // departure excluded
+  })
+
+  it('never returns negative vacation days', () => {
+    const days: TripDay[] = [
+      makeDay('2026-04-28', 'arrival', false),
+      makeDay('2026-04-29', 'full', false, 'full-day-off', 'Independence Day'),
+      makeDay('2026-04-30', 'full', false, 'full-day-off', 'Shavuot'),
+      makeDay('2026-05-04', 'departure', false),
+    ]
+    const result = calcVacationDays(days)
+    expect(result.vacationDaysNeeded).toBe(0)  // clamped at 0
+  })
+})
+```
+
+- [ ] **Step 2: Run tests — expect failure**
+
+```bash
+npm test -- calcVacationDays
+```
+
+Expected: FAIL — "Cannot find module"
+
+- [ ] **Step 3: Implement**
+
+Create `src/utils/calcVacationDays.ts`:
+
+```typescript
+import type { TripDay } from '../types'
+
+interface VacationResult {
+  vacationDaysNeeded: number
+  halfVacationDaysNeeded: number
+  fullHolidaysOnWeekdays: string[]
+  halfHolidaysOnWeekdays: string[]
+}
+
+export function calcVacationDays(tripDays: TripDay[]): VacationResult {
+  const fullDaysOnly = tripDays.filter(d => d.type === 'full' && !d.isWeekend)
+
+  const fullHolidaysOnWeekdays: string[] = []
+  const halfHolidaysOnWeekdays: string[] = []
+
+  for (const day of fullDaysOnly) {
+    if (day.holidayTier === 'full-day-off' && day.holidayName) {
+      fullHolidaysOnWeekdays.push(day.holidayName)
+    } else if (day.holidayTier === 'half-day' && day.holidayName) {
+      halfHolidaysOnWeekdays.push(day.holidayName)
+    }
+  }
+
+  const weekdayFullDays = fullDaysOnly.length
+  const vacationDaysNeeded = Math.max(0, weekdayFullDays - fullHolidaysOnWeekdays.length)
+  const halfVacationDaysNeeded = halfHolidaysOnWeekdays.length
+
+  return {
+    vacationDaysNeeded,
+    halfVacationDaysNeeded,
+    fullHolidaysOnWeekdays,
+    halfHolidaysOnWeekdays,
+  }
+}
+```
+
+- [ ] **Step 4: Run tests — expect pass**
+
+```bash
+npm test -- calcVacationDays
+```
+
+Expected: all tests PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/utils/calcVacationDays.ts tests/utils/calcVacationDays.test.ts
+git commit -m "feat: add calcVacationDays utility"
+```
+
+---
+
 ## Task 11: Global styles and App shell
 
 **Files:**
@@ -1309,7 +1502,6 @@ export default function App() {
   const [inputs, setInputs] = useState<FlightInputs>(EMPTY_INPUTS)
   const [weekStructure, setWeekStructure] = useState<WeekStructure>('israel')
   const [thresholds, setThresholds] = useState<ScoringThresholds>(DEFAULT_THRESHOLDS)
-  const [showHebrew, setShowHebrew] = useState(false)
 
   const validationError = validateInputs(inputs)
   const isComplete = Object.values(inputs).every(v => v !== '')
@@ -1339,14 +1531,12 @@ export default function App() {
 
       {result && (
         <>
-          <ResultCard result={result} inputs={inputs} />
+          <ResultCard result={result} />
           <TripCalendarCard
             inputs={inputs}
             result={result}
             weekStructure={weekStructure}
             thresholds={thresholds}
-            showHebrew={showHebrew}
-            onToggleHebrew={() => setShowHebrew(h => !h)}
           />
         </>
       )}
@@ -1690,25 +1880,32 @@ git commit -m "feat: add SettingsCard component"
 Create `src/components/ResultCard.tsx`:
 
 ```tsx
-import type { TripResult, FlightInputs } from '../types'
+import type { TripResult } from '../types'
 import { formatBreakdown } from '../utils/formatBreakdown'
 
 interface Props {
   result: TripResult
-  inputs: FlightInputs
 }
 
 const STATS = [
-  { key: 'fullDays',     emoji: '☀️',  label: 'Full days'     },
-  { key: 'travelDayValue', emoji: '✈️', label: 'Travel value'  },
-  { key: 'nights',       emoji: '🌙',  label: 'Nights'        },
-  { key: 'calendarDays', emoji: '📅',  label: 'Calendar days' },
-  { key: 'weekdays',     emoji: '💼',  label: 'Weekdays'      },
-  { key: 'weekendDays',  emoji: '🏖️', label: 'Weekend days'  },
+  { key: 'fullDays',       emoji: '☀️',  label: 'Full days'     },
+  { key: 'travelDayValue', emoji: '✈️',  label: 'Travel value'  },
+  { key: 'nights',         emoji: '🌙',  label: 'Nights'        },
+  { key: 'calendarDays',   emoji: '📅',  label: 'Calendar days' },
+  { key: 'weekdays',       emoji: '💼',  label: 'Weekdays'      },
+  { key: 'weekendDays',    emoji: '🏖️', label: 'Weekend days'  },
 ] as const
 
 export default function ResultCard({ result }: Props) {
   const breakdown = formatBreakdown(result.fullDays, result.travelDayValue)
+
+  const fullFormula = result.fullHolidaysOnWeekdays.length > 0
+    ? `${result.weekdays} weekdays − ${result.fullHolidaysOnWeekdays.length} full holiday (${result.fullHolidaysOnWeekdays.join(', ')})`
+    : `${result.weekdays} weekdays, no public holidays`
+
+  const halfFormula = result.halfHolidaysOnWeekdays.length > 0
+    ? `${result.halfHolidaysOnWeekdays.length} Erev holiday on weekday (${result.halfHolidaysOnWeekdays.join(', ')})`
+    : 'No half-day holidays on weekdays'
 
   return (
     <div className="result-card">
@@ -1719,7 +1916,7 @@ export default function ResultCard({ result }: Props) {
       </div>
       <div className="result-breakdown">
         {breakdown.split('+').map((part, i) => (
-          <span key={i}>{i > 0 && <span className="breakdown-plus"> + </span>}<strong>{part.trim()}</strong></span>
+          <span key={i}>{i > 0 && <span> + </span>}<strong>{part.trim()}</strong></span>
         ))}
       </div>
       <div className="stats-grid">
@@ -1730,6 +1927,26 @@ export default function ResultCard({ result }: Props) {
             <div className="stat-label">{s.label}</div>
           </div>
         ))}
+      </div>
+
+      <div className="vacation-section">
+        <div className="vacation-title">🗂️ Work vacation required</div>
+        <div className="vacation-rows">
+          <div className="vrow full">
+            <div className="vrow-left">
+              <div className="vrow-label">🏝️ Vacation days needed</div>
+              <div className="vrow-formula">{fullFormula}</div>
+            </div>
+            <div className="vrow-value">{result.vacationDaysNeeded}</div>
+          </div>
+          <div className="vrow half">
+            <div className="vrow-left">
+              <div className="vrow-label">🌅 Half-day vacations needed</div>
+              <div className="vrow-formula">{halfFormula}</div>
+            </div>
+            <div className="vrow-value">{result.halfVacationDaysNeeded}</div>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -1798,6 +2015,39 @@ Append to `src/App.css`:
 .stat-emoji { font-size: 1rem; margin-bottom: 2px; }
 .stat-value { font-size: 1.4rem; font-weight: 800; line-height: 1; margin-bottom: 3px; }
 .stat-label { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Vacation section */
+.vacation-section {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 14px;
+  margin-top: 10px;
+}
+.vacation-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.vacation-rows { display: flex; flex-direction: column; gap: 7px; }
+.vrow {
+  background: rgba(255,255,255,0.04);
+  border-radius: 9px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.vrow.full { border-left: 3px solid var(--color-departure); }
+.vrow.half { border-left: 3px solid var(--color-weekend); }
+.vrow-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.vrow-label { font-size: 0.78rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 5px; }
+.vrow-formula { font-size: 0.62rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vrow-value { font-size: 1.6rem; font-weight: 900; flex-shrink: 0; }
+.vrow.full .vrow-value { color: var(--color-departure); }
+.vrow.half .vrow-value { color: var(--color-weekend); }
 ```
 
 - [ ] **Step 3: Commit**
@@ -1823,9 +2073,8 @@ Create `src/components/CalendarCell.tsx`:
 import type { TripDay } from '../types'
 
 interface Props {
-  day: TripDay | null  // null = faded non-trip day
+  day: TripDay | null
   dayNumber: number | null
-  showHebrew: boolean
 }
 
 const TYPE_CLASS: Record<string, string> = {
@@ -1846,7 +2095,7 @@ const TIER_CLASS: Record<string, string> = {
   'workday': 'tier-work',
 }
 
-export default function CalendarCell({ day, dayNumber, showHebrew }: Props) {
+export default function CalendarCell({ day, dayNumber }: Props) {
   if (!dayNumber) return <div className="cal-cell" />
 
   if (!day) {
@@ -1862,15 +2111,15 @@ export default function CalendarCell({ day, dayNumber, showHebrew }: Props) {
         {day.type === 'arrival' ? '🛬 ' : day.type === 'departure' ? '✈️ ' : ''}
         {day.usableValue.toString()}
       </span>
-      {showHebrew && day.hebrewDate && (
+      {day.hebrewDate && (
         <span className="cal-heb">{day.hebrewDate}</span>
       )}
-      {showHebrew && day.holidayTier && (
+      {day.holidayTier && (
         <span className={`cal-tier ${TIER_CLASS[day.holidayTier]}`}>
           {TIER_LABEL[day.holidayTier]}
         </span>
       )}
-      {showHebrew && day.holidayName && (
+      {day.holidayName && (
         <span className="cal-holiday">{day.holidayName}</span>
       )}
     </div>
@@ -1891,7 +2140,6 @@ interface Props {
   month: number  // 0-indexed
   tripDays: TripDay[]
   weekStructure: WeekStructure
-  showHebrew: boolean
 }
 
 const DOW_ISRAEL   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -1907,7 +2155,7 @@ function getFirstDayOfMonth(year: number, month: number): number {
   return new Date(year, month, 1).getDay() // 0=Sun
 }
 
-export default function CalendarMonth({ year, month, tripDays, weekStructure, showHebrew }: Props) {
+export default function CalendarMonth({ year, month, tripDays, weekStructure }: Props) {
   const daysInMonth = getDaysInMonth(year, month)
   const firstDow = getFirstDayOfMonth(year, month) // 0=Sun
 
@@ -1946,7 +2194,6 @@ export default function CalendarMonth({ year, month, tripDays, weekStructure, sh
             key={i}
             day={dayNum ? (tripDayMap.get(dayNum) ?? null) : null}
             dayNumber={dayNum}
-            showHebrew={showHebrew}
           />
         ))}
       </div>
@@ -2059,12 +2306,10 @@ interface Props {
   result: TripResult
   weekStructure: WeekStructure
   thresholds: ScoringThresholds
-  showHebrew: boolean
-  onToggleHebrew: () => void
 }
 
 export default function TripCalendarCard({
-  inputs, result, weekStructure, showHebrew, onToggleHebrew
+  inputs, result, weekStructure
 }: Props) {
   const tripDays = buildTripDays(
     inputs.outboundArrivalDate,
@@ -2074,17 +2319,15 @@ export default function TripCalendarCard({
     weekStructure
   )
 
-  // Enrich with Hebrew data if enabled
-  const enrichedDays = showHebrew
-    ? tripDays.map(td => {
-        const hData = getHebrewCalendarData(td.date)
-        return { ...td, hebrewDate: hData.hebrewDate, holidayName: hData.holidayName ?? undefined, holidayTier: hData.holidayTier ?? undefined }
-      })
-    : tripDays
+  // Always enrich with Hebrew data
+  const enrichedDays = tripDays.map(td => {
+    const hData = getHebrewCalendarData(td.date)
+    return { ...td, hebrewDate: hData.hebrewDate, holidayName: hData.holidayName ?? undefined, holidayTier: hData.holidayTier ?? undefined }
+  })
 
   // Determine unique months to render
   const months: Array<{ year: number; month: number }> = []
-  for (const td of tripDays) {
+  for (const td of enrichedDays) {
     const y = td.date.getFullYear()
     const m = td.date.getMonth()
     if (!months.find(x => x.year === y && x.month === m)) {
@@ -2104,11 +2347,9 @@ export default function TripCalendarCard({
         <span className="legend-item"><span className="legend-dot full-dot" /> Full day</span>
         <span className="legend-item"><span className="legend-dot weekend-dot" /> Weekend</span>
         <span className="legend-item"><span className="legend-dot departure-dot" /> Departure</span>
-        {showHebrew && <>
-          <span className="legend-tier tier-off">Day off</span>
-          <span className="legend-tier tier-half">Half day</span>
-          <span className="legend-tier tier-work">Workday</span>
-        </>}
+        <span className="legend-tier tier-off">Day off</span>
+        <span className="legend-tier tier-half">Half day</span>
+        <span className="legend-tier tier-work">Workday</span>
       </div>
 
       {months.map(({ year, month }) => (
@@ -2118,18 +2359,8 @@ export default function TripCalendarCard({
           month={month}
           tripDays={enrichedDays}
           weekStructure={weekStructure}
-          showHebrew={showHebrew}
         />
       ))}
-
-      <div className="heb-toggle-row">
-        <div className="heb-toggle-label">✡️ Show Jewish calendar</div>
-        <button
-          className={`pill-toggle${showHebrew ? ' on' : ''}`}
-          onClick={onToggleHebrew}
-          aria-label="Toggle Jewish calendar"
-        />
-      </div>
     </div>
   )
 }
@@ -2328,9 +2559,9 @@ Expected results:
 - Calendar days: **7**
 - Calendar shows April and May grids with Apr 28 in orange, May 4 in red, days in between in green/gold
 
-- [ ] **Step 4: Toggle Jewish calendar**
+- [ ] **Step 4: Verify Hebrew calendar always shows**
 
-Click "✡️ Show Jewish calendar" toggle. Verify Hebrew dates and holiday names appear in calendar cells.
+Confirm Hebrew dates and holiday names appear in calendar cells without any toggle — they should always be visible.
 
 - [ ] **Step 5: Test validation**
 
@@ -2345,9 +2576,14 @@ Expected: 0 full days, 0 nights, usable days = 0.75 (max of 0.75 arrival score a
 
 Switch to "🌍 International". Verify weekend highlighting shifts from Fri/Sat to Sat/Sun in the calendar grid.
 
-- [ ] **Step 8: Test advanced thresholds**
+- [ ] **Step 8: Test vacation days section**
 
-Expand "Advanced scoring thresholds". Change arrival early threshold to 08:00. Enter arrival time of 07:00. Verify arrival score changes to 0.75 and total usable days updates.
+Using the test trip (Apr 28 → May 4), verify the "Work vacation required" section shows:
+- Vacation days needed: some number ≥ 0
+- Half-day vacations: some number ≥ 0
+- Formula text visible under each row explaining the calculation
+
+Switch week structure to International and verify weekday counts and vacation days update accordingly.
 
 - [ ] **Step 9: Final commit**
 
@@ -2382,7 +2618,10 @@ git commit -m "feat: trip duration calculator complete — all smoke tests pass"
 | Calendar: 7-col week-aligned grid | Task 15 CalendarMonth |
 | Cross-month: two stacked grids | Task 16 TripCalendarCard (months array) |
 | Color coding per day type | Task 15 CalendarCell |
-| Hebrew calendar toggle | Task 16 TripCalendarCard + Task 10 |
+| Hebrew calendar always on (no toggle) | Task 10 + Task 16 (always enriched) |
+| Vacation days needed (weekdays − full holidays) | Task 10b calcVacationDays |
+| Half-day vacations needed | Task 10b calcVacationDays |
+| Vacation section in result card (Option B rows) | Task 14 ResultCard |
 | Hebrew date string per day | Task 10 getHebrewCalendarData |
 | Holiday name per day | Task 10 |
 | Holiday tier pill (Day off/Half day/Workday) | Task 15 CalendarCell + Task 10 |
