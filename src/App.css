@@ -404,3 +404,28 @@ body {
 .legend-tier.tier-off  { background: rgba(104,211,145,0.25); color: var(--color-full); }
 .legend-tier.tier-half { background: rgba(246,224,94,0.2);   color: var(--color-weekend); }
 .legend-tier.tier-work { background: rgba(160,174,192,0.15); color: var(--text-muted); }
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  body { padding: 0 10px 80px; }
+  .hero { padding: 24px 0 18px; }
+  .hero-emoji { font-size: 2.4rem; }
+  .card { padding: 14px; border-radius: 12px; }
+  .flight-grid { gap: 7px; }
+  .flight-leg { padding: 10px; }
+  .leg-label { font-size: 0.58rem; }
+  .affects-badge { font-size: 0.52rem; }
+  .field-input { font-size: 0.76rem; padding: 6px 8px; }
+  .stats-grid { gap: 6px; }
+  .stat { padding: 8px 4px; }
+  .stat-value { font-size: 1.1rem; }
+  .stat-label { font-size: 0.55rem; }
+  .cal-cell { min-height: 46px; }
+  .cal-num { font-size: 0.72rem; }
+  .cal-value { font-size: 0.52rem; }
+  .cal-heb { font-size: 0.45rem; }
+  .cal-tier { font-size: 0.44rem; }
+  .cal-holiday { font-size: 0.44rem; max-width: 38px; }
+  .toggle-btn { font-size: 0.72rem; }
+  .toggle-sub { display: none; }
+}
