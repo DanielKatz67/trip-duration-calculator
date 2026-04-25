@@ -17,6 +17,7 @@
   --color-purple: #9f7aea;
   --radius-card: 16px;
   --radius-inner: 10px;
+  color-scheme: dark;
 }
 
 body {
@@ -156,6 +157,8 @@ body {
   padding: 7px 9px;
   font-size: 0.82rem;
   color: var(--text);
+  -webkit-text-fill-color: var(--text);
+  color-scheme: dark;
   outline: none;
   font-family: inherit;
 }
