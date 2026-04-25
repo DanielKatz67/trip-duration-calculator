@@ -161,6 +161,10 @@ body {
   color-scheme: dark;
   outline: none;
   font-family: inherit;
+  box-sizing: border-box;
+  height: 36px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .field-input:focus {
   border-color: var(--color-accent);
@@ -493,7 +497,7 @@ body {
   .flight-leg { padding: 10px; min-width: 0; }
   .leg-label { font-size: 0.58rem; }
   .affects-badge { font-size: 0.52rem; }
-  .field-input { font-size: 0.76rem; padding: 6px 8px; min-width: 0; }
+  .field-input { font-size: 0.82rem; padding: 7px 9px; min-width: 0; height: 36px; }
   .stats-grid { gap: 6px; }
   .stat { padding: 8px 4px; }
   .stat-value { font-size: 1.1rem; }
