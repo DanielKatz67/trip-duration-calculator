@@ -48,4 +48,29 @@ describe('calcTripResult', () => {
     expect(result.nights).toBe(0)
     expect(result.usableDays).toBe(0.75) // max(0.75, 0.5)
   })
+
+  it('arrivalDayVacation is true when outbound departs before cutoff', () => {
+    // outboundDepartureTime 08:00 < arrivalVacationCutoff 18:00 → true
+    const result = calcTripResult(inputs, DEFAULT_THRESHOLDS, 'israel')
+    expect(result.arrivalDayVacation).toBe(true)
+  })
+
+  it('arrivalDayVacation is false when outbound departs after cutoff', () => {
+    const lateInputs = { ...inputs, outboundDepartureTime: '20:00' }
+    const result = calcTripResult(lateInputs, DEFAULT_THRESHOLDS, 'israel')
+    expect(result.arrivalDayVacation).toBe(false)
+  })
+
+  it('departureDayVacation is false when return arrives before cutoff', () => {
+    // returnArrivalTime 01:00 < departureVacationCutoff 09:00 → false
+    const result = calcTripResult(inputs, DEFAULT_THRESHOLDS, 'israel')
+    expect(result.departureDayVacation).toBe(false)
+  })
+
+  it('departureDayVacation is true when return arrives after cutoff', () => {
+    const lateReturn = { ...inputs, returnArrivalTime: '12:00' }
+    const result = calcTripResult(lateReturn, DEFAULT_THRESHOLDS, 'israel')
+    expect(result.departureDayVacation).toBe(true)
+  })
 })
+

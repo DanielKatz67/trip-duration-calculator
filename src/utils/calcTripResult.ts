@@ -8,6 +8,11 @@ import { buildTripDays } from './buildTripDays'
 import { getHebrewCalendarData } from './hebrewCalendar'
 import { calcVacationDays } from './calcVacationDays'
 
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
 export function calcTripResult(
   inputs: FlightInputs,
   thresholds: ScoringThresholds,
@@ -48,6 +53,14 @@ export function calcTripResult(
   const { weekdays, weekendDays } = calcWeekdayCounts(allDates, weekStructure)
   const vacation = calcVacationDays(enrichedDays)
 
+  // Arrival day counts as vacation if outbound departs before cutoff
+  const arrivalDayVacation =
+    timeToMinutes(inputs.outboundDepartureTime) < timeToMinutes(thresholds.arrivalVacationCutoff)
+
+  // Departure day counts as vacation if return arrives after cutoff
+  const departureDayVacation =
+    timeToMinutes(inputs.returnArrivalTime) > timeToMinutes(thresholds.departureVacationCutoff)
+
   return {
     usableDays: Math.round(usableDays * 100) / 100,
     fullDays,
@@ -59,5 +72,7 @@ export function calcTripResult(
     arrivalScore,
     departureScore,
     ...vacation,
+    arrivalDayVacation,
+    departureDayVacation,
   }
 }

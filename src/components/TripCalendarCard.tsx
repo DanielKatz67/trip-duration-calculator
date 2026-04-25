@@ -47,7 +47,6 @@ export default function TripCalendarCard({
       <div className="cal-legend">
         <span className="legend-item"><span className="legend-dot arrival-dot" /> Arrival</span>
         <span className="legend-item"><span className="legend-dot full-dot" /> Full day</span>
-        <span className="legend-item"><span className="legend-dot weekend-dot" /> Weekend</span>
         <span className="legend-item"><span className="legend-dot departure-dot" /> Departure</span>
         <span className="legend-tier tier-off">Day off</span>
         <span className="legend-tier tier-half">Half day</span>

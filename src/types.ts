@@ -13,6 +13,10 @@ export interface ScoringThresholds {
   departureEarlyScore: number; // 0.00
   departureMidScore: number;   // 0.50
   departureLateScore: number;  // 0.75
+  // Vacation day logic: arrival day counts as vacation if outbound departs before this time
+  arrivalVacationCutoff: string;    // "18:00"
+  // Vacation day logic: departure day counts as vacation if return arrives after this time
+  departureVacationCutoff: string;  // "09:00"
 }
 
 export const DEFAULT_THRESHOLDS: ScoringThresholds = {
@@ -26,6 +30,8 @@ export const DEFAULT_THRESHOLDS: ScoringThresholds = {
   departureEarlyScore: 0.00,
   departureMidScore: 0.50,
   departureLateScore: 0.75,
+  arrivalVacationCutoff: '18:00',
+  departureVacationCutoff: '09:00',
 }
 
 export interface TripDay {
@@ -52,6 +58,8 @@ export interface TripResult {
   halfVacationDaysNeeded: number;
   fullHolidaysOnWeekdays: string[];
   halfHolidaysOnWeekdays: string[];
+  arrivalDayVacation: boolean;    // arrival day counts as a vacation day
+  departureDayVacation: boolean;  // departure day counts as a vacation day
 }
 
 export interface FlightInputs {

@@ -30,7 +30,8 @@ export default function CalendarCell({ day, dayNumber }: Props) {
     return <div className="cal-cell faded"><span className="cal-num">{dayNumber}</span></div>
   }
 
-  const typeClass = day.type === 'full' && day.isWeekend ? 'weekend-day' : TYPE_CLASS[day.type]
+  // All full days (including weekends) are green — no special weekend coloring
+  const typeClass = TYPE_CLASS[day.type]
 
   return (
     <div className={`cal-cell ${typeClass}`}>
@@ -39,9 +40,6 @@ export default function CalendarCell({ day, dayNumber }: Props) {
         {day.type === 'arrival' ? '🛬 ' : day.type === 'departure' ? '✈️ ' : ''}
         {day.usableValue.toString()}
       </span>
-      {day.hebrewDate && (
-        <span className="cal-heb">{day.hebrewDate}</span>
-      )}
       {day.holidayTier && (
         <span className={`cal-tier ${TIER_CLASS[day.holidayTier]}`}>
           {TIER_LABEL[day.holidayTier]}

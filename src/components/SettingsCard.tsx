@@ -11,7 +11,7 @@ interface Props {
 export default function SettingsCard({ weekStructure, onWeekStructureChange, thresholds, onThresholdsChange }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
 
-  function setThreshold(key: keyof ScoringThresholds, value: string | number) {
+  function set(key: keyof ScoringThresholds, value: string | number) {
     onThresholdsChange({ ...thresholds, [key]: value })
   }
 
@@ -38,46 +38,68 @@ export default function SettingsCard({ weekStructure, onWeekStructureChange, thr
       </div>
 
       <button className="advanced-toggle" onClick={() => setShowAdvanced(s => !s)}>
-        {showAdvanced ? '▴' : '▾'} Advanced scoring thresholds
+        {showAdvanced ? '▴' : '▾'} Advanced Settings
       </button>
 
       {showAdvanced && (
         <div className="advanced-panel">
-          <div className="advanced-section-label">Arrival day score</div>
-          <div className="threshold-row">
-            <span>Before</span>
-            <input type="time" className="field-input threshold-input" value={thresholds.arrivalEarly} onChange={e => setThreshold('arrivalEarly', e.target.value)} />
-            <span>→</span>
-            <input type="number" className="field-input threshold-input" step="0.25" min="0" max="1" value={thresholds.arrivalEarlyScore} onChange={e => setThreshold('arrivalEarlyScore', parseFloat(e.target.value))} />
-          </div>
-          <div className="threshold-row">
-            <span>Before</span>
-            <input type="time" className="field-input threshold-input" value={thresholds.arrivalMid} onChange={e => setThreshold('arrivalMid', e.target.value)} />
-            <span>→</span>
-            <input type="number" className="field-input threshold-input" step="0.25" min="0" max="1" value={thresholds.arrivalMidScore} onChange={e => setThreshold('arrivalMidScore', parseFloat(e.target.value))} />
-          </div>
-          <div className="threshold-row">
-            <span>After →</span>
-            <input type="number" className="field-input threshold-input" step="0.25" min="0" max="1" value={thresholds.arrivalLateScore} onChange={e => setThreshold('arrivalLateScore', parseFloat(e.target.value))} />
+
+          {/* Arrival day score */}
+          <div className="advanced-section-label">🛬 Arrival day score</div>
+          <p className="advanced-hint">How useful is the arrival day based on what time you land?</p>
+          <table className="threshold-table">
+            <thead>
+              <tr><th>Land before</th><th>Land before</th><th>After that</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="time" className="field-input" value={thresholds.arrivalEarly} onChange={e => set('arrivalEarly', e.target.value)} /></td>
+                <td><input type="time" className="field-input" value={thresholds.arrivalMid} onChange={e => set('arrivalMid', e.target.value)} /></td>
+                <td className="col-fixed">—</td>
+              </tr>
+              <tr>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.arrivalEarlyScore} onChange={e => set('arrivalEarlyScore', parseFloat(e.target.value))} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.arrivalMidScore} onChange={e => set('arrivalMidScore', parseFloat(e.target.value))} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.arrivalLateScore} onChange={e => set('arrivalLateScore', parseFloat(e.target.value))} /></td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Departure day score */}
+          <div className="advanced-section-label" style={{ marginTop: 14 }}>✈️ Departure day score</div>
+          <p className="advanced-hint">How useful is the departure day based on what time your flight leaves?</p>
+          <table className="threshold-table">
+            <thead>
+              <tr><th>Leave before</th><th>Leave before</th><th>After that</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="time" className="field-input" value={thresholds.departureEarly} onChange={e => set('departureEarly', e.target.value)} /></td>
+                <td><input type="time" className="field-input" value={thresholds.departureLate} onChange={e => set('departureLate', e.target.value)} /></td>
+                <td className="col-fixed">—</td>
+              </tr>
+              <tr>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.departureEarlyScore} onChange={e => set('departureEarlyScore', parseFloat(e.target.value))} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.departureMidScore} onChange={e => set('departureMidScore', parseFloat(e.target.value))} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.departureLateScore} onChange={e => set('departureLateScore', parseFloat(e.target.value))} /></td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Vacation day logic */}
+          <div className="advanced-section-label" style={{ marginTop: 14 }}>🏝️ Vacation day counting</div>
+          <p className="advanced-hint">When do travel days count as vacation days taken from work?</p>
+          <div className="vacation-cutoff-rows">
+            <div className="vcutoff-row">
+              <span className="vcutoff-label">Arrival day counts as vacation if outbound departs before</span>
+              <input type="time" className="field-input vcutoff-input" value={thresholds.arrivalVacationCutoff} onChange={e => set('arrivalVacationCutoff', e.target.value)} />
+            </div>
+            <div className="vcutoff-row">
+              <span className="vcutoff-label">Departure day counts as vacation if return arrives after</span>
+              <input type="time" className="field-input vcutoff-input" value={thresholds.departureVacationCutoff} onChange={e => set('departureVacationCutoff', e.target.value)} />
+            </div>
           </div>
 
-          <div className="advanced-section-label" style={{ marginTop: 12 }}>Departure day score</div>
-          <div className="threshold-row">
-            <span>Before</span>
-            <input type="time" className="field-input threshold-input" value={thresholds.departureEarly} onChange={e => setThreshold('departureEarly', e.target.value)} />
-            <span>→</span>
-            <input type="number" className="field-input threshold-input" step="0.25" min="0" max="1" value={thresholds.departureEarlyScore} onChange={e => setThreshold('departureEarlyScore', parseFloat(e.target.value))} />
-          </div>
-          <div className="threshold-row">
-            <span>Before</span>
-            <input type="time" className="field-input threshold-input" value={thresholds.departureLate} onChange={e => setThreshold('departureLate', e.target.value)} />
-            <span>→</span>
-            <input type="number" className="field-input threshold-input" step="0.25" min="0" max="1" value={thresholds.departureMidScore} onChange={e => setThreshold('departureMidScore', parseFloat(e.target.value))} />
-          </div>
-          <div className="threshold-row">
-            <span>After →</span>
-            <input type="number" className="field-input threshold-input" step="0.25" min="0" max="1" value={thresholds.departureLateScore} onChange={e => setThreshold('departureLateScore', parseFloat(e.target.value))} />
-          </div>
         </div>
       )}
     </div>

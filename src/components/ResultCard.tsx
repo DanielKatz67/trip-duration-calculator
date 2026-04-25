@@ -64,6 +64,24 @@ export default function ResultCard({ result }: Props) {
             </div>
             <div className="vrow-value">{result.halfVacationDaysNeeded}</div>
           </div>
+          {result.arrivalDayVacation && (
+            <div className="vrow full">
+              <div className="vrow-left">
+                <div className="vrow-label">🛬 Arrival day is a vacation day</div>
+                <div className="vrow-formula">Outbound departs before {result.arrivalDayVacation ? 'cutoff' : ''}</div>
+              </div>
+              <div className="vrow-value">+1</div>
+            </div>
+          )}
+          {result.departureDayVacation && (
+            <div className="vrow full">
+              <div className="vrow-left">
+                <div className="vrow-label">✈️ Departure day is a vacation day</div>
+                <div className="vrow-formula">Return arrives after cutoff</div>
+              </div>
+              <div className="vrow-value">+1</div>
+            </div>
+          )}
         </div>
       </div>
     </div>

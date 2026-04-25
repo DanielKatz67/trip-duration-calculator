@@ -93,6 +93,23 @@ body {
 }
 
 /* FlightInputCard */
+.flight-group {
+  margin-bottom: 12px;
+}
+.flight-group:last-child { margin-bottom: 0; }
+.flight-group-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.flight-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 .flight-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -209,6 +226,65 @@ body {
 }
 .threshold-input {
   width: 80px !important;
+}
+.threshold-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin-top: 4px;
+}
+.threshold-table th {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 4px 5px;
+  text-align: left;
+}
+.threshold-table td {
+  padding: 3px 4px;
+  vertical-align: middle;
+}
+.threshold-table td.col-fixed {
+  color: var(--text-dim);
+  font-size: 1rem;
+  text-align: center;
+}
+.threshold-table .field-input {
+  width: 100%;
+  min-width: 0;
+}
+.advanced-hint {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.vacation-cutoff-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.vcutoff-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.vcutoff-label {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  flex: 1;
+  line-height: 1.4;
+}
+.vcutoff-input {
+  width: 100px !important;
+  flex-shrink: 0;
 }
 
 /* ResultCard */
@@ -340,18 +416,14 @@ body {
 .cal-cell.faded { opacity: 0.12; }
 .cal-cell.arrival  { background: rgba(246,173,85,0.17);  border: 1px solid rgba(246,173,85,0.44); }
 .cal-cell.full-day { background: rgba(104,211,145,0.1);  border: 1px solid rgba(104,211,145,0.27); }
-.cal-cell.weekend-day { background: rgba(246,224,94,0.09); border: 1px solid rgba(246,224,94,0.3); }
 .cal-cell.departure  { background: rgba(252,129,129,0.12); border: 1px solid rgba(252,129,129,0.37); }
 .cal-num { font-size: 0.8rem; font-weight: 700; }
 .cal-cell.arrival    .cal-num { color: var(--color-arrival); }
-.cal-cell.weekend-day .cal-num { color: var(--color-weekend); }
 .cal-cell.departure  .cal-num { color: var(--color-departure); }
 .cal-value { font-size: 0.58rem; font-weight: 600; opacity: 0.85; }
 .cal-cell.arrival     .cal-value { color: var(--color-arrival); }
 .cal-cell.full-day    .cal-value { color: var(--color-full); }
-.cal-cell.weekend-day .cal-value { color: var(--color-weekend); }
 .cal-cell.departure   .cal-value { color: var(--color-departure); }
-.cal-heb { font-size: 0.5rem; color: var(--text-dim); }
 .cal-tier {
   font-size: 0.5rem;
   border-radius: 3px;
@@ -411,6 +483,7 @@ body {
   .hero { padding: 24px 0 18px; }
   .hero-emoji { font-size: 2.4rem; }
   .card { padding: 14px; border-radius: 12px; }
+  .flight-pair { gap: 7px; }
   .flight-grid { gap: 7px; }
   .flight-leg { padding: 10px; }
   .leg-label { font-size: 0.58rem; }
@@ -423,9 +496,11 @@ body {
   .cal-cell { min-height: 46px; }
   .cal-num { font-size: 0.72rem; }
   .cal-value { font-size: 0.52rem; }
-  .cal-heb { font-size: 0.45rem; }
   .cal-tier { font-size: 0.44rem; }
   .cal-holiday { font-size: 0.44rem; max-width: 38px; }
   .toggle-btn { font-size: 0.72rem; }
   .toggle-sub { display: none; }
+  .vcutoff-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .vcutoff-input { width: 100% !important; }
+  .threshold-table th { font-size: 0.56rem; }
 }

@@ -15,11 +15,18 @@ describe('getHebrewCalendarData', () => {
     expect(data.holidayTier).toBeNull()
   })
 
-  it('returns full-day-off tier for Shabbat', () => {
-    // May 2 2026 = Saturday = Shabbat
+  it('returns no holiday tier for Saturday (Shabbat not tracked)', () => {
+    // May 2 2026 = Saturday — no Shabbat tier in our system
     const data = getHebrewCalendarData(new Date(2026, 4, 2))
-    expect(data.holidayName).toBe('Shabbat')
+    expect(data.holidayName).toBeNull()
+    expect(data.holidayTier).toBeNull()
+  })
+
+  it('returns full-day-off tier for Independence Day (Yom HaAtzma\'ut)', () => {
+    // Yom HaAtzma'ut 5786 = April 22 2026
+    const data = getHebrewCalendarData(new Date(2026, 3, 22))
     expect(data.holidayTier).toBe('full-day-off')
+    expect(data.holidayName).toContain('HaAtzma\u2019ut')
   })
 
   it('returns workday tier for Lag BaOmer', () => {
@@ -28,3 +35,4 @@ describe('getHebrewCalendarData', () => {
     expect(data.holidayTier).toBe('workday')
   })
 })
+
