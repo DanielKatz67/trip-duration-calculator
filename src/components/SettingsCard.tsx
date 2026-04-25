@@ -15,6 +15,12 @@ export default function SettingsCard({ weekStructure, onWeekStructureChange, thr
     onThresholdsChange({ ...thresholds, [key]: value })
   }
 
+  function setScore(key: keyof ScoringThresholds, raw: string) {
+    const val = parseFloat(raw)
+    if (isNaN(val)) return
+    set(key, Math.min(1, Math.max(0, val)))
+  }
+
   return (
     <div className="card">
       <div className="card-header">
@@ -58,9 +64,9 @@ export default function SettingsCard({ weekStructure, onWeekStructureChange, thr
                 <td className="col-fixed">—</td>
               </tr>
               <tr>
-                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.arrivalEarlyScore} onChange={e => set('arrivalEarlyScore', parseFloat(e.target.value))} /></td>
-                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.arrivalMidScore} onChange={e => set('arrivalMidScore', parseFloat(e.target.value))} /></td>
-                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.arrivalLateScore} onChange={e => set('arrivalLateScore', parseFloat(e.target.value))} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.arrivalEarlyScore} onChange={e => setScore('arrivalEarlyScore', e.target.value)} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.arrivalMidScore} onChange={e => setScore('arrivalMidScore', e.target.value)} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.arrivalLateScore} onChange={e => setScore('arrivalLateScore', e.target.value)} /></td>
               </tr>
             </tbody>
           </table>
@@ -79,9 +85,9 @@ export default function SettingsCard({ weekStructure, onWeekStructureChange, thr
                 <td className="col-fixed">—</td>
               </tr>
               <tr>
-                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.departureEarlyScore} onChange={e => set('departureEarlyScore', parseFloat(e.target.value))} /></td>
-                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.departureMidScore} onChange={e => set('departureMidScore', parseFloat(e.target.value))} /></td>
-                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.departureLateScore} onChange={e => set('departureLateScore', parseFloat(e.target.value))} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.departureEarlyScore} onChange={e => setScore('departureEarlyScore', e.target.value)} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.departureMidScore} onChange={e => setScore('departureMidScore', e.target.value)} /></td>
+                <td><input type="number" className="field-input" step="0.25" min="0" max="1" value={thresholds.departureLateScore} onChange={e => setScore('departureLateScore', e.target.value)} /></td>
               </tr>
             </tbody>
           </table>

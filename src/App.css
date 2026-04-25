@@ -123,6 +123,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .flight-leg.scoring {
   border-color: var(--border-accent);
@@ -440,7 +441,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 52px;
+  max-width: 80px;
 }
 
 /* TripCalendarCard */
@@ -485,10 +486,10 @@ body {
   .card { padding: 14px; border-radius: 12px; }
   .flight-pair { gap: 7px; }
   .flight-grid { gap: 7px; }
-  .flight-leg { padding: 10px; }
+  .flight-leg { padding: 10px; min-width: 0; }
   .leg-label { font-size: 0.58rem; }
   .affects-badge { font-size: 0.52rem; }
-  .field-input { font-size: 0.76rem; padding: 6px 8px; }
+  .field-input { font-size: 0.76rem; padding: 6px 8px; min-width: 0; }
   .stats-grid { gap: 6px; }
   .stat { padding: 8px 4px; }
   .stat-value { font-size: 1.1rem; }
